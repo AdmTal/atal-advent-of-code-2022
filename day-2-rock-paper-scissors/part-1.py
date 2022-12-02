@@ -61,9 +61,9 @@ strategy_guide_rounds = [
 ]
 
 your_score = 0
+
 for opponent_choice, your_choice in strategy_guide_rounds:
     round_result = GAME_LOGIC[your_choice][opponent_choice]
-
     your_score += POINTS_BY_CHOICE[your_choice] + POINTS_BY_RESULT[round_result]
 
 print(your_score)

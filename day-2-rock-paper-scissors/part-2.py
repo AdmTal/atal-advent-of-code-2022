@@ -82,6 +82,7 @@ strategy_guide_rounds = [
 ]
 
 your_score = 0
+
 for opponent_choice, required_result in strategy_guide_rounds:
     your_choice = CHOICE_BY_RESULT[required_result][opponent_choice]
     round_result = GAME_LOGIC[your_choice][opponent_choice]
