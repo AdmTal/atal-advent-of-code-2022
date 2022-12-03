@@ -1,7 +1,7 @@
 rucksack_inventories = open('./input.txt').read().split('\n')
 
 
-def groups(array, group_size=3):
+def groups(array, group_size):
     for i in range(0, len(array), group_size):
         yield [set(x) for x in array[i:i + group_size]]
 
@@ -13,7 +13,7 @@ def priority(letter):
 
 priorities_sum = 0
 
-for first, second, third in groups(rucksack_inventories):
+for first, second, third in groups(rucksack_inventories, 3):
     common_item = first \
         .intersection(second) \
         .intersection(third) \
