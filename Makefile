@@ -1,4 +1,4 @@
-FOLDERNAME ?= $(shell bash -c 'read -p "Name the folder >> " foldername; echo $$foldername')
+NAME ?= $(shell bash -c 'read -p "Enter a name for the folder >> " name; echo $$name')
 
 folder:
-	cp -r day-x-template/ $(FOLDERNAME)
+	cp -r day-x-template/ $(NAME)
