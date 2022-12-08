@@ -1,19 +1,5 @@
 system_output_lines = open('./example-input.txt').read().split('\n')
 
-"""
-
-Read through commands once ...
-
-Each command give info - and must be processed immediatly
-
-You either learn about this DIR - or another.
-
-We need a Tree + a hash that points to nodes on the tree
-
-When we add a child node - we need to update the size, and then propagate that to the root
-
-"""
-
 
 class FileTreeNode(object):
     def __init__(self, name, parent=None):
@@ -26,46 +12,57 @@ class FileTreeNode(object):
     def name(self):
         return self._name
 
+    def add_child(self, name, value):
+        self._children[name] = value
+
+    def increase_size(self, more):
+        self._size += more
+        if self._parent:
+            self._parent.increase_size(self._size)
+
     @property
-    def children(self):
-        return self._children
+    def size(self):
+        return self._size
 
 
-executing_ls = False
-PWD = None
-
-FILE_TREE_ROOT = FileTreeNode('/')
+FILE_TREE_ROOT = FileTreeNode('')
+PWD = FILE_TREE_ROOT.name
 NODE_LOOKUP = {
     FILE_TREE_ROOT.name: FILE_TREE_ROOT,
 }
 
 for line in system_output_lines:
-    line_is_commmand = line[0] == '$'
+    this_line_is_a_command = line[0] == '$'
 
-    if executing_ls and not line_is_commmand:
-        command_args = line.split(' ')
-        if command_args[0] == 'dir':
-            # Make new node - add it here
-            new_dir = FileTreeNode(command_args[1], NODE_LOOKUP[PWD])
-            new_dir.
-            # This is tricky - I'm gonna finish it later tonight after work
-        else:
-            pass
-
-    if line_is_commmand:
+    if this_line_is_a_command:
         command_args = line[2:].split(' ')
-        print(f'COMMAND {command_args}')
-
         command = command_args[0]
-
         if command == 'cd':
             dest = command_args[1]
             if dest == '..':
-                # TODO : Check if current node has a parent.  Raise exception if it does not
+                PWD = '/'.join(PWD.split('/')[:-1])
                 dest = NODE_LOOKUP[PWD]
-                if not dest:
-                    raise Exception(f'Could not find parent for {PWD}')
+            elif dest == '/':
+                PWD = ''
             else:
-                PWD = dest
+                PWD = f'{PWD}/{dest}'
+
         elif command == 'ls':
             executing_ls = True
+
+    elif executing_ls:
+        command_args = line.split(' ')
+        parent = NODE_LOOKUP[PWD]
+        if command_args[0] == 'dir':
+            child = FileTreeNode(f'{parent.name}/{command_args[1]}', parent)
+            parent.add_child(child.name, child)
+            NODE_LOOKUP[child.name] = child
+        else:
+            size, filename = command_args
+            parent.increase_size(int(size))
+
+print(
+    sum(
+        [i.size for i in NODE_LOOKUP.values() if i.size <= 100_000]
+    )
+)
