@@ -1,6 +1,8 @@
 from collections import defaultdict
 
-head_moves = [i.split(' ') for i in open('./input.txt').read().split('\n')]
+head_moves = [
+    i.split(' ') for i in open('./input.txt').read().split('\n')
+]
 head_moves = [[i[0], int(i[1])] for i in head_moves]
 
 coords_tail_visited = defaultdict(dict)
@@ -25,25 +27,17 @@ def coord_delta(direction):
 
 
 for direction, steps in head_moves:
-
-    print(f'HEAD - {direction} -- {steps}')
-    print(f'HEAD at ({head_x}, {head_y}), TAIL at ({tail_x}, {tail_y}) ')
-
     head_delta_x, head_delta_y = coord_delta(direction)
 
     for step in range(steps):
         head_x += head_delta_x
         head_y += head_delta_y
 
-        print(f'\tHEAD move to ({head_x}, {head_y})')
-
         # If they overlap - skip
         if head_x == tail_x and head_y == tail_y:
-            print(f'\t\tTAIL stays put ({tail_x}, {tail_y})')
             continue
 
         if abs(head_x - tail_x) < 2 and abs(head_y - tail_y) < 2:
-            print(f'\t\tTAIL stays put ({tail_x}, {tail_y})')
             continue
 
         if head_x == tail_x and abs(head_y - tail_y) == 2 or head_y == tail_y and abs(head_x - tail_x) == 2:
@@ -59,7 +53,6 @@ for direction, steps in head_moves:
                     tail_x += 1
                 else:
                     tail_x -= 1
-            print(f'\t\tTAIL move to ({tail_x}, {tail_y})')
             coords_tail_visited[tail_x][tail_y] = True
             continue
 
@@ -79,8 +72,6 @@ for direction, steps in head_moves:
 
         tail_x += tail_delta_x
         tail_y += tail_delta_y
-
-        print(f'\t\tTAIL move to ({tail_x}, {tail_y})')
 
         coords_tail_visited[tail_x][tail_y] = True
 
