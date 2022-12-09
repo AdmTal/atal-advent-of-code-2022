@@ -5,14 +5,16 @@ head_moves = [[i[0], int(i[1])] for i in head_moves]
 
 coords_tail_visited = defaultdict(dict)
 
-# TODO - replace these with a list of 10 COORDs - and move them each one at a time, similar to same solution
-head_x = 0
-head_y = 0
-tail_x = 0
-tail_y = 0
+NUM_KNOTS = 10
+KNOTS = [[0, 0] for i in range(NUM_KNOTS)]
+
+HEAD = 0
+TAIL = NUM_KNOTS - 1
+X = 0
+Y = 1
 
 # First location is considered visited
-coords_tail_visited[tail_x][tail_y] = True
+coords_tail_visited[KNOTS[TAIL][X]][KNOTS[TAIL][Y]] = True
 
 
 def coord_delta(direction):
@@ -26,64 +28,59 @@ def coord_delta(direction):
 
 
 for direction, steps in head_moves:
-
-    print(f'HEAD - {direction} -- {steps}')
-    print(f'HEAD at ({head_x}, {head_y}), TAIL at ({tail_x}, {tail_y}) ')
-
     head_delta_x, head_delta_y = coord_delta(direction)
 
     for step in range(steps):
-        head_x += head_delta_x
-        head_y += head_delta_y
+        KNOTS[HEAD][X] += head_delta_x
+        KNOTS[HEAD][Y] += head_delta_y
 
-        print(f'\tHEAD move to ({head_x}, {head_y})')
+        # Iterate rest of knots in rope
+        for curr in range(1, NUM_KNOTS):
 
-        # If they overlap - skip
-        if head_x == tail_x and head_y == tail_y:
-            print(f'\t\tTAIL stays put ({tail_x}, {tail_y})')
-            continue
+            # If they overlap - skip
+            if KNOTS[curr - 1][X] == KNOTS[curr][X] and KNOTS[curr - 1][Y] == KNOTS[curr][Y]:
+                continue
 
-        if abs(head_x - tail_x) < 2 and abs(head_y - tail_y) < 2:
-            print(f'\t\tTAIL stays put ({tail_x}, {tail_y})')
-            continue
+            if abs(KNOTS[curr - 1][X] - KNOTS[curr][X]) < 2 and abs(KNOTS[curr - 1][Y] - KNOTS[curr][Y]) < 2:
+                continue
 
-        if head_x == tail_x and abs(head_y - tail_y) == 2 or head_y == tail_y and abs(head_x - tail_x) == 2:
-            if head_x == tail_x and abs(head_y - tail_y) == 2:
-                # move 1 step UP or DOWN
-                if head_y > tail_y:
-                    tail_y += 1
-                else:
-                    tail_y -= 1
-            elif head_y == tail_y and abs(head_x - tail_x) == 2:
-                # move 1 step LEFT or RIGHT
-                if head_x > tail_x:
-                    tail_x += 1
-                else:
-                    tail_x -= 1
-            print(f'\t\tTAIL move to ({tail_x}, {tail_y})')
-            coords_tail_visited[tail_x][tail_y] = True
-            continue
+            if KNOTS[curr - 1][X] == KNOTS[curr][X] and abs(KNOTS[curr - 1][Y] - KNOTS[curr][Y]) == 2 or \
+                    KNOTS[curr - 1][Y] == KNOTS[curr][Y] and abs(KNOTS[curr - 1][X] - KNOTS[curr][X]) == 2:
+                if KNOTS[curr - 1][X] == KNOTS[curr][X] and abs(KNOTS[curr - 1][Y] - KNOTS[curr][Y]) == 2:
+                    # move 1 step UP or DOWN
+                    if KNOTS[curr - 1][Y] > KNOTS[curr][Y]:
+                        KNOTS[curr][Y] += 1
+                    else:
+                        KNOTS[curr][Y] -= 1
+                elif KNOTS[curr - 1][Y] == KNOTS[curr][Y] and abs(KNOTS[curr - 1][X] - KNOTS[curr][X]) == 2:
+                    # move 1 step LEFT or RIGHT
+                    if KNOTS[curr - 1][X] > KNOTS[curr][X]:
+                        KNOTS[curr][X] += 1
+                    else:
+                        KNOTS[curr][X] -= 1
+                if curr == TAIL:
+                    coords_tail_visited[KNOTS[curr][X]][KNOTS[curr][Y]] = True
+                continue
 
-        # Move Diagonally 1 step close to H
-        if head_x > tail_x:
-            tail_delta_x, tail_delta_y = coord_delta('R')
-        else:
-            tail_delta_x, tail_delta_y = coord_delta('L')
+            # Move Diagonally 1 step close to H
+            if KNOTS[curr - 1][X] > KNOTS[curr][X]:
+                tail_delta_x, tail_delta_y = coord_delta('R')
+            else:
+                tail_delta_x, tail_delta_y = coord_delta('L')
 
-        tail_x += tail_delta_x
-        tail_y += tail_delta_y
+            KNOTS[curr][X] += tail_delta_x
+            KNOTS[curr][Y] += tail_delta_y
 
-        if head_y > tail_y:
-            tail_delta_x, tail_delta_y = coord_delta('U')
-        else:
-            tail_delta_x, tail_delta_y = coord_delta('D')
+            if KNOTS[curr - 1][Y] > KNOTS[curr][Y]:
+                tail_delta_x, tail_delta_y = coord_delta('U')
+            else:
+                tail_delta_x, tail_delta_y = coord_delta('D')
 
-        tail_x += tail_delta_x
-        tail_y += tail_delta_y
+            KNOTS[curr][X] += tail_delta_x
+            KNOTS[curr][Y] += tail_delta_y
 
-        print(f'\t\tTAIL move to ({tail_x}, {tail_y})')
-
-        coords_tail_visited[tail_x][tail_y] = True
+            if curr == TAIL:
+                coords_tail_visited[KNOTS[curr][X]][KNOTS[curr][Y]] = True
 
 tail_steps = 0
 for x_coord, y_coords in coords_tail_visited.items():
