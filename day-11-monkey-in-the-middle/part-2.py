@@ -29,7 +29,7 @@ class Monkey(object):
 
         self._items = self._parse_starting_items(starting_items)
         self._operation = self._parse_operation(operation)
-        self._prime = self._parse_test(test)
+        self._divisible_check = self._parse_test(test)
         self._monkey_when_true = self._get_monkey_for_handler(handle_true)
         self._monkey_when_false = self._get_monkey_for_handler(handle_false)
 
@@ -56,8 +56,8 @@ class Monkey(object):
     def get_monkey_to_throw_to(self, worry_level):
         # Return TRUE of given number is divisible by
 
-        _ = math.gcd(self._prime, worry_level)
-        if _ == min(self._prime, worry_level):
+        _ = math.gcd(self._divisible_check, worry_level)
+        if _ == min(self._divisible_check, worry_level):
             return self._monkey_when_true
         return self._monkey_when_false
 
@@ -66,8 +66,8 @@ class Monkey(object):
         return self._items
 
     @property
-    def prime(self):
-        return self._prime
+    def divisible_check(self):
+        return self._divisible_check
 
 
 monkeys = [Monkey(instruction_group) for instruction_group in instruction_groups]
@@ -79,10 +79,10 @@ monkey_num_inspections = defaultdict(int)
 
 # I'm not this smart, I found help from the subreddit, specifically this link
 # https://nickymeuleman.netlify.app/garden/aoc2022-day11#part-2
-required_primes = [monkey.prime for monkey in monkeys]
-_MATH_MAGIC_I_STOLE_FROM_NICKY_MEULEMAN = required_primes[0]
-for required_prime in required_primes[1:]:
-    _MATH_MAGIC_I_STOLE_FROM_NICKY_MEULEMAN *= required_prime
+required_divisible_checks = [monkey.divisible_check for monkey in monkeys]
+_MATH_MAGIC_I_STOLE_FROM_NICKY_MEULEMAN = required_divisible_checks[0]
+for required_divisible_check in required_divisible_checks[1:]:
+    _MATH_MAGIC_I_STOLE_FROM_NICKY_MEULEMAN *= required_divisible_check
 
 for round in range(1, NUM_ROUNDS + 1):
 
