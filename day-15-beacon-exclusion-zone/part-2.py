@@ -1,8 +1,11 @@
 import re
 from collections import defaultdict
 
-# input_items = open('./example-input.txt').read().split('\n')
-input_items = open('./input.txt').read().split('\n')
+SEARCH_MAX = 20
+input_items = open('./example-input.txt').read().split('\n')
+# SEARCH_MAX = 4_000_000
+# input_items = open('./input.txt').read().split('\n')
+
 
 input_re = re.compile('Sensor at x=([-0-9]+), y=([-0-9]+): closest beacon is at x=([-0-9]+), y=([-0-9]+)')
 sensor_beacon_pairs = []
@@ -31,7 +34,7 @@ def generate_all_non_beacon_or_sensor_coords_within_manhattan_distance(sx, sy, m
         x, y = to_visit.pop(0)
         coords.append((x, y))
         visited[x][y] = True
-        for next_x in range(1, SEARCH_MAX + 1):
+        for next_x in range(sx - manhattan_dist, sx + manhattan_dist + 1):
             next_y = target_y
             next_manhattan_dist = manhattan_distance(sx, sy, next_x, next_y)
             next_is_beacon = beacons[next_x][next_y]
@@ -40,8 +43,6 @@ def generate_all_non_beacon_or_sensor_coords_within_manhattan_distance(sx, sy, m
 
     return coords
 
-
-SEARCH_MAX = 4_000_000
 
 print('starting 1')
 
@@ -52,8 +53,8 @@ for idx, xxx in enumerate(sensor_beacon_pairs, start=1):
     bx, by = b_coord
     print(f'{idx} / {len(sensor_beacon_pairs)}')
     manhattan_dist = manhattan_distance(sx, sy, bx, by)
-    for i in range(1, SEARCH_MAX + 1):
-        coords = generate_all_non_beacon_or_sensor_coords_within_manhattan_distance(sx, sy, manhattan_dist, i)
+    for _y in range(sy - manhattan_dist, sy + manhattan_dist + 1):
+        coords = generate_all_non_beacon_or_sensor_coords_within_manhattan_distance(sx, sy, manhattan_dist, _y)
         for x, y in coords:
             coords_that_are_totally_not_beacons_dude[y][x] = True
 
