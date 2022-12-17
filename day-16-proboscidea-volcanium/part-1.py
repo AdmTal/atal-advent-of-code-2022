@@ -1,11 +1,12 @@
 import re
 from collections import defaultdict
 from functools import cache
+import time
 
-input_lines = open('./example-input.txt').read().split('\n')
+# input_lines = open('./example-input.txt').read().split('\n')
+input_lines = open('./input.txt').read().split('\n')
 
-
-# input_lines = open('./input.txt').read().split('\n')
+MINUTES_TO_SAVE_ELEPHANTS = 30
 
 
 class Node:
@@ -52,51 +53,67 @@ def print_graph(nodes):
     print("""digraph {
     """)
     for name, node in nodes.items():
-        print(f'    {node.name};')
+        print(f'    "{node.name} ({node.flow_rate})";')
         for weight, child in node.edges:
-            print(f'    {node.name} -> {child.name} [label="{weight} {node.flow_rate}"];')
+            print(f'    "{node.name} ({node.flow_rate})" -> "{child.name} ({child.flow_rate})";')
     print('}')
 
 
-###
-
 def to_str(open_valves):
-    return ','.join([key for key, value in open_valves.items() if value])
+    return ','.join(sorted([key for key in open_valves.keys() if key]))
 
 
 @cache
 def max_pressure_release(current_position, open_valves_str, minutes_remaining):
-    spacer = ' ' * (30 - minutes_remaining)
-
-    if minutes_remaining <= 1:
+    # When time is up, the max pressure that can further be released is ZERO
+    if minutes_remaining <= 0:
         return 0
 
-    open_valves = {k: True for k in open_valves_str.split(',')}
-
-    options = []
+    open_valves = {k: True for k in open_valves_str.split(',') if k}
 
     new_pressure_released = 0
 
-    if current_position not in options:
-        # If you OPEN
+    # Let's figure out what our options are for a next move
+    # We always have the option to NOT open the Valve
+    options = [[
+        open_valves_str,
+        minutes_remaining,
+        0
+    ]]
+
+    # If the current Valve is CLOSED - we have the option to open it -- but we should skip if flow_rate is ZERO
+    if current_position not in open_valves and graph[current_position].flow_rate:
+        # Append an option for opening the valve
         open_valves[current_position] = True
-        options.append([to_str(open_valves), minutes_remaining - 1])
-        new_pressure_released += graph[current_position].flow_rate * minutes_remaining - 1
+        minutes_remaining_after_this_move = minutes_remaining - 1
+        pressure_released_for_this_valve = graph[current_position].flow_rate * minutes_remaining_after_this_move
+        options.append([
+            to_str(open_valves),
+            minutes_remaining_after_this_move,
+            pressure_released_for_this_valve
+        ])
 
-    # if you SKIP
-    open_valves[current_position] = False
-    options.append([to_str(open_valves), minutes_remaining - 1])
+    # Cycles are troubling - but given that the timer is counting down - they will not cause inf loops
 
+    # We have to consider our options for all children
     max_result = float('-inf')
-    for next_open_valves_str, next_time_remaining in options:
+    for next_open_valves_str, next_time_remaining, extra_pressure in options:
         for weight, child in graph[current_position].edges:
+            # Visit the Child - keep track of MAX
             max_result = max(
                 max_result,
-                max_pressure_release(child.name, next_open_valves_str, next_time_remaining - 1)
+                max_pressure_release(
+                    child.name,
+                    next_open_valves_str,
+                    next_time_remaining - 1
+                ) + extra_pressure
             )
 
-    print(f'{spacer} min={minutes_remaining} RES={new_pressure_released + max_result}')
-    return new_pressure_released + max_result
+    new_pressure_released += max_result
+    return new_pressure_released
 
 
-print(max_pressure_release('AA', '', 2))
+start = time.time()
+print(max_pressure_release('AA', '', MINUTES_TO_SAVE_ELEPHANTS))
+end = time.time()
+print(f'{end - start}')
