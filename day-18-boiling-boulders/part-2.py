@@ -29,6 +29,7 @@ def coord_is_air_pocket(x, y, z, visited_str=''):
         x <= 0, y <= 0, z <= 0,
         x >= MAXES[0], y >= MAXES[1], z >= MAXES[2],
     ]):
+        memo[x][y][z] = False
         return False
 
     visited = {k: True for k in visited_str.split(',')}
@@ -118,7 +119,7 @@ for line in input_items:
 
     cubes.append(new_cube)
 
-memo = input_cube_lookup = np.random.choice([None], size=(MAXES[0] + 1, MAXES[1] + 1, MAXES[2] + 1))
+memo = np.random.choice([None], size=(MAXES[0] + 1, MAXES[1] + 1, MAXES[2] + 1))
 input_cube_lookup = np.random.choice([0], size=(MAXES[0] + 1, MAXES[1] + 1, MAXES[2] + 1))
 for cube in cubes:
     x, y, z = cube.coords
@@ -128,6 +129,8 @@ print('y max = ', MAXES[1])
 print('z max = ', MAXES[2])
 print(f'search space = {MAXES[0] * MAXES[1] * MAXES[2]}')
 # FILL IN THE AIR POCKETS BY ADDING MORE CUBES TO THE INPUT
+air_bubbles = []
+non_air_bubbles = [i for i in input_items]
 for x in reversed(range(MAXES[0])):
     for y in reversed(range(MAXES[1])):
         for z in reversed(range(MAXES[2])):
@@ -138,9 +141,12 @@ for x in reversed(range(MAXES[0])):
             v = ts(x, y, z)
             if coord_is_air_pocket(x, y, z, v):
                 input_items.append(item)
-                print(f'\tFilling air bubble -> {input_items[-1]}')
+                air_bubbles.append(item)
 
 cubes = []
+
+with open('air_bubbles.txt', 'w+') as output_file:
+    output_file.write('\n'.join(air_bubbles))
 
 for line in input_items:
     x, y, z = list(map(int, line.split(',')))
@@ -157,3 +163,29 @@ for cube in cubes:
     answer += cube.get_sides_exposed()
 
 print(f'Answer = {answer}')
+
+### DEBUG
+import matplotlib.pyplot as plt
+
+ab_data = np.random.choice([0], size=(MAXES[0] + 1, MAXES[1] + 1, MAXES[2] + 1))
+nab_data = np.random.choice([0], size=(MAXES[0] + 1, MAXES[1] + 1, MAXES[2] + 1))
+
+for d in air_bubbles:
+    x, y, z = list(map(int, d.split(',')))
+    ab_data[x][y][z] = 1
+for d in non_air_bubbles:
+    x, y, z = list(map(int, d.split(',')))
+    nab_data[x][y][z] = 1
+
+# Create a new figure
+fig = plt.figure()
+
+# Axis with 3D projection
+ax = fig.add_subplot(projection='3d')
+
+# Plot the voxels
+ax.voxels(nab_data, edgecolor=None, facecolors='black', alpha=.1)
+ax.voxels(ab_data, edgecolor="k", facecolors='red')
+
+# Display the plot
+plt.show()
