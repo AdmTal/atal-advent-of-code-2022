@@ -1,16 +1,15 @@
-import os
-import time
 import sys
 
-# WIND_DIRECTIONS = open('./example-input.txt').read().split('\n')[0]  # 40
-WIND_DIRECTIONS = open('./input.txt').read().split('\n')[0]  # 10091
+WIND_DIRECTIONS = open('./example-input.txt').read().split('\n')[0]  # 40
+# WIND_DIRECTIONS = open('./input.txt').read().split('\n')[0]  # 10091
 
 VERBOSE = len(sys.argv) > 1
 
 LEFT = '<'
 RIGHT = '>'
 
-NUM_ROCKS_TO_FALL = 1_000_000_000_000
+# NUM_ROCKS_TO_FALL = 1_000_000_000_000
+NUM_ROCKS_TO_FALL = 100000
 NUM_WIND_DIRECTIONS = len(WIND_DIRECTIONS)
 
 # There must be a periodic pattern ...
@@ -55,7 +54,7 @@ ROCKS_IN_EXISTENCE = []
 
 
 class Rock(object):
-    def __init__(self, name, shape, hoofp, woofp, left_start, bottom_start):
+    def __init__(self, name, shape, hoofp, woofp, left_start, bottom_start, windex):
         self._name = name
         self._shape = shape
         self._hoofp = hoofp
@@ -63,6 +62,8 @@ class Rock(object):
         # A rock is basically a list of Particles (pixel coords) in the environment
         self._particles = self._calculate_particles_from_starting_position(left_start, bottom_start)
         self._state = ROCK_STATE_FALLING
+        self._windex = windex
+        self._move_history = []
 
     def _calculate_particles_from_starting_position(self, left_start, bottom_start):
         sx, sy = left_start + self._woofp, bottom_start + self._hoofp
@@ -76,6 +77,9 @@ class Rock(object):
 
     def __eq__(self, other):
         return self._name == other._name
+
+    def check_for_soul_mate(self, other_rock):
+        return self._windex == other_rock._windex and self._move_history == other_rock._move_history
 
     def __str__(self):
         particles = []
@@ -93,6 +97,7 @@ class Rock(object):
         return max([y for _, y in self.particles])
 
     def stop(self):
+        self._height_when_this_landed = height_of_tower()
         self._state = ROCK_STATE_STOPPED
 
     @property
@@ -119,6 +124,7 @@ class Rock(object):
                     if x == rx and y == ry:
                         return False
 
+        self._move_history.append((dx, dy))
         self._particles = new_particles
         return True
 
@@ -134,10 +140,14 @@ num_rock_formations = len(ROCK_FORMATIONS)
 current_falling_rock = None
 game_step = 0
 num_stopped_rocks = 0
-x_marker = None
-diffs = []
-rock_counts = []
 # Game Loop
+
+from collections import defaultdict
+
+wind_resets_by_rock = defaultdict(int)
+
+landed_heights = [None, ]
+
 while num_stopped_rocks < NUM_ROCKS_TO_FALL:
 
     # Wind Index = Windex - I'm having the time of my life here :)
@@ -161,7 +171,8 @@ while num_stopped_rocks < NUM_ROCKS_TO_FALL:
             hoofp,
             woofp,
             left_start=LEFT_OFFSET,
-            bottom_start=height_of_tower() + BOTTOM_OFFSET
+            bottom_start=height_of_tower() + BOTTOM_OFFSET,
+            windex=windex,
         )
         ROCKS_IN_EXISTENCE.append(current_falling_rock)
 
@@ -170,44 +181,37 @@ while num_stopped_rocks < NUM_ROCKS_TO_FALL:
 
     # If Gravity fails to move the rock, the rock will have stopped
     if not current_falling_rock.try_to_move(0, -1):
-        if x_marker is None:
-            x_marker = current_falling_rock.particles[0][0]
-            wind_marker = windex
-            print(f'set x mark {x_marker}; wind_marker={wind_marker}')
-            h_prev = 0
-        curr_x_marker = current_falling_rock.particles[0][0]
         current_falling_rock.stop()
+        landed_heights.append(height_of_tower())
+        current_num = int(current_falling_rock._name.split('_')[1])
+        print(f'{current_num} -- {height_of_tower()}')
+
+        for other_rock in ROCKS_IN_EXISTENCE:
+
+            if current_falling_rock == other_rock:
+                continue
+
+            if current_falling_rock.check_for_soul_mate(other_rock):
+                other_num = int(other_rock._name.split('_')[1])
+                current_num = int(current_falling_rock._name.split('_')[1])
+                # print(f'{other_num} and {current_num} are soul mates')
+                print(f'So really, the a Cycle is from {other_num} to {current_num - 1}')
+                diff = landed_heights[current_num - 1] - landed_heights[other_num]
+                cycle_length = current_num - 1 - other_num
+                print(f'that means the height grows {diff} every {cycle_length} rocks')
+                a = 1_000_000_000_000
+                complete_cycles = int(a / cycle_length)
+                remainder_cycles = a % cycle_length
+                print(f'The final answer is {complete_cycles * diff} + whatever the height is after the next {remainder_cycles} rocks')
+                print(f'There can be {complete_cycles} cycles in {a}')
+                expected = 1514285714288
+                print(f'Expected = {1514285714288}')
+                actual = (complete_cycles * diff) + sum(landed_heights[other_num:other_num + remainder_cycles + 1])
+                print(f'Actual   = {actual}')
+                print(f'diff     = {actual - expected}')
+                exit()
+
         current_falling_rock = None
         num_stopped_rocks += 1
 
-        # Find the first one - then wait to find it again ....
-
-        if x_marker is not None and x_marker == wind_marker and rockdex == 0:
-            h = height_of_tower()
-            h_prev_diff = h - h_prev
-            rock_counts.append(len(ROCKS_IN_EXISTENCE))
-            diffs.append(h_prev_diff)
-            print(
-                f'num_rocks={len(ROCKS_IN_EXISTENCE)}; height={h}; diff_since_last={h_prev_diff};')
-            h_prev = h
-
-            if len(diffs) <= 2:
-                continue
-
-            second_diff = diffs[1]
-            latest_diff = diffs[-1]
-
-            if second_diff == latest_diff:
-                break
-
-print(f'Pattern Detected ...')
-period = diffs[1:-1]
-len_period = len(period)
-amount = sum(diffs[1:-1])
-sum(diffs[1:-1])
-print(diffs)
-print(f'Tower grows {amount} every {len_period} rocks')
-
-first_height = diffs[0]
-answer = int(((NUM_ROCKS_TO_FALL-1) / len_period) * amount)
-print(f'Answer is {answer}')
+print(height_of_tower())
