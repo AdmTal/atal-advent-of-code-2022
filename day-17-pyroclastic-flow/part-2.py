@@ -194,7 +194,7 @@ while num_stopped_rocks < NUM_ROCKS_TO_FALL:
             if current_falling_rock.check_for_soul_mate(other_rock):
                 other_num = int(other_rock._name.split('_')[1])
                 current_num = int(current_falling_rock._name.split('_')[1])
-                # print(f'{other_num} and {current_num} are soul mates')
+                print(f'{other_num} and {current_num} are soul mates')
                 print(f'So really, the a Cycle is from {other_num} to {current_num - 1}')
                 diff = landed_heights[current_num - 1] - landed_heights[other_num]
                 cycle_length = current_num - 1 - other_num
