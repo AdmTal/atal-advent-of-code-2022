@@ -7,7 +7,11 @@ input_items = open('./example-input.txt').read().split('\n')
 print(input_items)
 
 input_re = re.compile(
-    'Blueprint ([-0-9]+): Each ore robot costs ([-0-9]+) ore. Each clay robot costs ([-0-9]+) ore. Each obsidian robot costs ([-0-9]+) ore and ([-0-9]+) clay. Each geode robot costs ([-0-9]+) ore and ([-0-9]+) obsidian.')
+    'Blueprint ([-0-9]+): '
+    'Each ore robot costs ([-0-9]+) ore. '
+    'Each clay robot costs ([-0-9]+) ore. '
+    'Each obsidian robot costs ([-0-9]+) ore and ([-0-9]+) clay. '
+    'Each geode robot costs ([-0-9]+) ore and ([-0-9]+) obsidian.')
 for line in input_items:
     [
         blueprint_id,
