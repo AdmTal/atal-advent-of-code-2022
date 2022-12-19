@@ -19,7 +19,7 @@ import sys
 sys.setrecursionlimit(5000)
 
 
-def coord_is_air_pocket(x, y, z, visited_str=''):
+def coord_is_inside_air_pocket(x, y, z, visited_str=''):
     global memo
     if memo[x][y][z] is not None:
         return memo[x][y][z]
@@ -34,7 +34,7 @@ def coord_is_air_pocket(x, y, z, visited_str=''):
 
     visited = {k: True for k in visited_str.split(',')}
 
-    # Return False if all neighbors not AIR POCKETS
+    # Check all the neighbors
     for dx, dy, dz in [
         [x, y, z - 1],
         [x, y, z + 1],
@@ -43,17 +43,19 @@ def coord_is_air_pocket(x, y, z, visited_str=''):
         [x - 1, y, z],
         [x + 1, y, z],
     ]:
-        # Don't re-visit anything
+        # Skip over any that have already been visited
         if ts(dx, dy, dz) in visited:
             continue
-        # Is the neighbor a WALL
+        # Skip over any Walls
         if input_cube_lookup[dx][dy][dz]:
             continue
+        # Visit the neighbor.  If it's NOT an air pocket, then current must also be NOT - exit
         visited[ts(dx, dy, dz)] = True
-        if not coord_is_air_pocket(dx, dy, dz, ','.join(visited.keys())):
+        if not coord_is_inside_air_pocket(dx, dy, dz, ','.join(visited.keys())):
             memo[x][y][z] = False
             return False
 
+    # To reach here, the CURR Is surrounded by WALLS, or other air pockets
     memo[x][y][z] = True
     return True
 
@@ -139,7 +141,7 @@ for x in reversed(range(MAXES[0])):
             if input_cube_lookup[x][y][z]:
                 continue
             v = ts(x, y, z)
-            if coord_is_air_pocket(x, y, z, v):
+            if coord_is_inside_air_pocket(x, y, z, v):
                 input_items.append(item)
                 air_bubbles.append(item)
 
