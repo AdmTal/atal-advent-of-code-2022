@@ -45,7 +45,6 @@ inventories_after_all_possible_purchases_cache = {}
 
 def inventories_after_all_possible_purchases(blueprint_id, inventory):
     cache_key = (blueprint_id, inventory)
-    print(f'\tCheck Inventory - {cache_key}')
     if cache_key in inventories_after_all_possible_purchases_cache:
         return inventories_after_all_possible_purchases_cache[cache_key]
 
@@ -119,7 +118,6 @@ max_geodes_possible_cache = {}
 
 def max_geodes_possible(blueprint_id, inventory, time_left):
     cache_key = (blueprint_id, inventory, time_left)
-    print(f'{cache_key}')
     if cache_key in max_geodes_possible_cache:
         return max_geodes_possible_cache[cache_key]
     # Parse Invetory
