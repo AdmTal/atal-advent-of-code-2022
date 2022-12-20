@@ -19,6 +19,8 @@ NUM_NUMS = len(original_digit_order)
 # Also, a list of numbers, so we know the current ordering after mixing
 mixed_digits = [i for i in original_digit_order]
 
+print(f'Initial Order: ', [i.value for i in mixed_digits])
+
 zero_digit = None
 
 # Mix all numbers once
@@ -27,7 +29,7 @@ for digit in original_digit_order:
     # Keep track of Zero, needed later
     if not digit.value:
         zero_digit = digit
-        print([i.value for i in mixed_digits])
+        print(f'\tZero does not move: ', [i.value for i in mixed_digits])
         continue
 
     # Find the current location of the original digit
@@ -35,16 +37,25 @@ for digit in original_digit_order:
 
     # If the value is positive, move it forward in the list
     if digit.value > 0:
-        new_index = (current_location + 1 + digit.value) % NUM_NUMS
+        if current_location + digit.value >= NUM_NUMS:
+            new_index = ((current_location + digit.value) % NUM_NUMS) + 1
+        else:
+            new_index = (current_location + digit.value) % NUM_NUMS
     else:
         # If the value is negative, move it backwards in the list
-        # Cheated = https://stackoverflow.com/questions/14785443/is-there-an-expression-using-modulo-to-do-backwards-wrap-around-reverse-overfl
+        # https://stackoverflow.com/questions/14785443/is-there-an-expression-using-modulo-to-do-backwards-wrap-around-reverse-overfl
         new_index = ((current_location - 1 + digit.value) % NUM_NUMS + NUM_NUMS) % NUM_NUMS
 
     mixed_digits.pop(current_location)
     mixed_digits.insert(new_index, digit)
 
-    print([i.value for i in mixed_digits])
+    a = (new_index + 1) % NUM_NUMS
+    b = new_index - 1 if new_index - 1 >= 0 else NUM_NUMS - 1
+    print(
+        f'\t{digit.value} '
+        f'moves between {mixed_digits[b].value} and {mixed_digits[a].value}: ',
+        [i.value for i in mixed_digits]
+    )
 
 location_of_zero = mixed_digits.index(zero_digit)
 print(mixed_digits[location_of_zero].value)
