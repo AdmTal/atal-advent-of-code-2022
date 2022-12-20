@@ -1,7 +1,12 @@
+from functools import cache
 import re
 
 input_items = open('./example-input.txt').read().split('\n')
 # input_items = open('./input.txt').read().split('\n')
+
+import sys
+
+sys.setrecursionlimit(50000)
 
 BLUEPRINTS = {}
 
@@ -40,42 +45,25 @@ for line in input_items:
         GEODE_BOT_OBSIDIAN_COST: geode_robot_obsidian_cost,
     }
 
-inventories_after_all_possible_purchases_cache = {}
 
-
+@cache
 def inventories_after_all_possible_purchases(blueprint_id, inventory):
-    cache_key = (blueprint_id, inventory)
-    if cache_key in inventories_after_all_possible_purchases_cache:
-        return inventories_after_all_possible_purchases_cache[cache_key]
-
     blueprint = BLUEPRINTS[blueprint_id]
     ore, clay, obsidian, open_geodes, ore_bots, clay_bots, obsidian_bots, geode_bots = inventory
 
     options = []
 
-    # Explore options if we build an ORE bot
-    if ore >= blueprint[ORE_BOT_ORE_COST]:
-        updated_inventory = (
-            ore - blueprint[ORE_BOT_ORE_COST],
-            clay,
-            obsidian,
-            open_geodes,
-            ore_bots + 1,
-            clay_bots,
-            obsidian_bots,
-            geode_bots,
-        )
-        options += [updated_inventory] + inventories_after_all_possible_purchases(blueprint_id, updated_inventory)
-
     # Explore options if we build a CLAY bot
     if ore >= blueprint[CLAY_BOT_ORE_COST]:
+        purchased = ore // blueprint[CLAY_BOT_ORE_COST]
+        remain = ore % blueprint[CLAY_BOT_ORE_COST]
         updated_inventory = (
-            ore - blueprint[CLAY_BOT_ORE_COST],
+            remain,
             clay,
             obsidian,
             open_geodes,
             ore_bots,
-            clay_bots + 1,
+            clay_bots + purchased,
             obsidian_bots,
             geode_bots,
         )
@@ -83,50 +71,75 @@ def inventories_after_all_possible_purchases(blueprint_id, inventory):
 
     # Explore options if we build an OBSIDIAN bot
     if ore >= blueprint[OBSIDIAN_BOT_ORE_COST] and clay >= blueprint[OBSIDIAN_BOT_CLAY_COST]:
+        purchased = 0
+        ore_remain = ore
+        clay_remain = clay
+
+        while ore_remain >= blueprint[OBSIDIAN_BOT_ORE_COST] and clay_remain >= blueprint[OBSIDIAN_BOT_CLAY_COST]:
+            purchased += 1
+            ore_remain -= blueprint[OBSIDIAN_BOT_ORE_COST]
+            clay_remain -= blueprint[OBSIDIAN_BOT_CLAY_COST]
+
         updated_inventory = (
-            ore - blueprint[OBSIDIAN_BOT_ORE_COST],
-            clay - blueprint[OBSIDIAN_BOT_CLAY_COST],
+            ore_remain,
+            clay_remain,
             obsidian,
             open_geodes,
             ore_bots,
             clay_bots,
-            obsidian_bots + 1,
+            obsidian_bots + purchased,
             geode_bots,
         )
         options += [updated_inventory] + inventories_after_all_possible_purchases(blueprint_id, updated_inventory)
 
     # Explore options if we build a GEODE bot
     if ore >= blueprint[GEODE_BOT_ORE_COST] and obsidian >= blueprint[GEODE_BOT_OBSIDIAN_COST]:
+        purchased = 0
+        ore_remain = ore
+        obsidian_remain = obsidian
+        while ore_remain >= blueprint[GEODE_BOT_ORE_COST] and obsidian_remain >= blueprint[GEODE_BOT_OBSIDIAN_COST]:
+            purchased += 1
+            ore_remain -= blueprint[OBSIDIAN_BOT_ORE_COST]
+            obsidian_remain -= blueprint[GEODE_BOT_OBSIDIAN_COST]
+
         updated_inventory = (
-            ore - blueprint[GEODE_BOT_ORE_COST],
+            ore_remain,
             clay,
-            obsidian - blueprint[GEODE_BOT_OBSIDIAN_COST],
+            obsidian_remain,
             open_geodes,
             ore_bots,
             clay_bots,
             obsidian_bots,
-            geode_bots + 1,
+            geode_bots + purchased,
         )
         options += [updated_inventory] + inventories_after_all_possible_purchases(blueprint_id, updated_inventory)
 
-    inventories_after_all_possible_purchases_cache[cache_key] = options
-    print(f'{cache_key} -> {len(options)}')
+    # Explore options if we build an ORE bot
+    if ore >= blueprint[ORE_BOT_ORE_COST]:
+        purchased = ore // blueprint[ORE_BOT_ORE_COST]
+        remain = ore % blueprint[ORE_BOT_ORE_COST]
+        updated_inventory = (
+            remain,
+            clay,
+            obsidian,
+            open_geodes,
+            ore_bots + purchased,
+            clay_bots,
+            obsidian_bots,
+            geode_bots,
+        )
+        options += [updated_inventory] + inventories_after_all_possible_purchases(blueprint_id, updated_inventory)
+
     return options
 
 
-max_geodes_possible_cache = {}
-
-
+@cache
 def max_geodes_possible(blueprint_id, inventory, time_left):
-    cache_key = (blueprint_id, inventory, time_left)
-    if cache_key in max_geodes_possible_cache:
-        return max_geodes_possible_cache[cache_key]
-    # Parse Invetory
+    # Parse Inventory
     ore, clay, obsidian, open_geodes, ore_bots, clay_bots, obsidian_bots, geode_bots = inventory
 
     # Can't make any geodes if there are no time left
     if time_left <= 0:
-        max_geodes_possible_cache[cache_key] = open_geodes
         return open_geodes
 
     # calculate the expected yield at the end of the current minute
@@ -142,6 +155,8 @@ def max_geodes_possible(blueprint_id, inventory, time_left):
 
     # Figure out all purchasing options from here
     purchasing_scenarios = inventories_after_all_possible_purchases(blueprint_id, inventory)
+
+    print(f'blueprint={blueprint_id}, time_left={time_left}, options={len(purchasing_scenarios)}')
 
     if not purchasing_scenarios:
         updated_inventory = new_materials_at_end_of_minute + (ore_bots, clay_bots, obsidian_bots, geode_bots)
@@ -171,7 +186,6 @@ def max_geodes_possible(blueprint_id, inventory, time_left):
             )
         )
 
-    max_geodes_possible_cache[cache_key] = best_option
     return best_option
 
 
