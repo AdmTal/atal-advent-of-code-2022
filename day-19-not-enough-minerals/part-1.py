@@ -184,7 +184,7 @@ starting_inventory = (
     0,  # GEODE CRACKING BOTS
 )
 
-ELEPHANT_PATIENCE_IN_MINUTES = 10
+ELEPHANT_PATIENCE_IN_MINUTES = 24
 
 quality_level_sum = 0
 for blueprint_id in BLUEPRINTS.keys():
