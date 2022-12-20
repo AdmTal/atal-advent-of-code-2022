@@ -81,7 +81,7 @@ def inventories_after_all_possible_purchases(blueprint_id, inventory):
         )
         options += [updated_inventory] + inventories_after_all_possible_purchases(blueprint_id, updated_inventory)
 
-    # Explore options if we build a OBSIDIAN bot
+    # Explore options if we build an OBSIDIAN bot
     if ore >= blueprint[OBSIDIAN_BOT_ORE_COST] and clay >= blueprint[OBSIDIAN_BOT_CLAY_COST]:
         updated_inventory = (
             ore - blueprint[OBSIDIAN_BOT_ORE_COST],
