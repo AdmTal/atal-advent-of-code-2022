@@ -1,5 +1,5 @@
-# input_items = open('./input.txt').read().split('\n')
-input_items = open('./example-input.txt').read().split('\n')
+input_items = open('./input.txt').read().split('\n')
+# input_items = open('./example-input.txt').read().split('\n')
 
 
 class Digit(object):
@@ -58,7 +58,6 @@ for digit in original_digit_order:
     )
 
 location_of_zero = mixed_digits.index(zero_digit)
-print(mixed_digits[location_of_zero].value)
 
 a = mixed_digits[(location_of_zero + 1000) % NUM_NUMS].value
 b = mixed_digits[(location_of_zero + 2000) % NUM_NUMS].value
