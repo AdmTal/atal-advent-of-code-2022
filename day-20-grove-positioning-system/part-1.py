@@ -1,5 +1,5 @@
-input_items = open('./input.txt').read().split('\n')
-# input_items = open('./example-input.txt').read().split('\n')
+# input_items = open('./input.txt').read().split('\n')
+input_items = open('./example-input.txt').read().split('\n')
 
 
 class Digit(object):
@@ -19,43 +19,38 @@ NUM_NUMS = len(original_digit_order)
 # Also, a list of numbers, so we know the current ordering after mixing
 mixed_digits = [i for i in original_digit_order]
 
-print(f'Initial Order: ', [i.value for i in mixed_digits])
-
 zero_digit = None
 
+actuals = [[i.value for i in mixed_digits]]
 # Mix all numbers once
-for digit in original_digit_order:
+for original_digit in original_digit_order:
 
     # Keep track of Zero, needed later
-    if not digit.value:
-        zero_digit = digit
-        print(f'\tZero does not move: ', [i.value for i in mixed_digits])
+    if not original_digit.value:
+        zero_digit = original_digit
+        actuals.append([i.value for i in mixed_digits])
         continue
 
     # Find the current location of the original digit
-    current_location = mixed_digits.index(digit)
+    current_location = mixed_digits.index(original_digit)
 
     # If the value is positive, move it forward in the list
-    if digit.value > 0:
-        if current_location + digit.value >= NUM_NUMS:
-            new_index = ((current_location + digit.value) % NUM_NUMS) + 1
+    if original_digit.value > 0:
+        if current_location + original_digit.value >= NUM_NUMS:
+            new_index = ((current_location + original_digit.value) % NUM_NUMS) + 1
         else:
-            new_index = (current_location + digit.value) % NUM_NUMS
+            new_index = (current_location + original_digit.value) % NUM_NUMS
     else:
         # If the value is negative, move it backwards in the list
         # https://stackoverflow.com/questions/14785443/is-there-an-expression-using-modulo-to-do-backwards-wrap-around-reverse-overfl
-        new_index = ((current_location - 1 + digit.value) % NUM_NUMS + NUM_NUMS) % NUM_NUMS
+        new_index = ((current_location - 1 + original_digit.value) % NUM_NUMS + NUM_NUMS) % NUM_NUMS
 
     mixed_digits.pop(current_location)
-    mixed_digits.insert(new_index, digit)
+    mixed_digits.insert(new_index, original_digit)
 
     a = (new_index + 1) % NUM_NUMS
     b = new_index - 1 if new_index - 1 >= 0 else NUM_NUMS - 1
-    print(
-        f'\t{digit.value} '
-        f'moves between {mixed_digits[b].value} and {mixed_digits[a].value}: ',
-        [i.value for i in mixed_digits]
-    )
+    actuals.append([i.value for i in mixed_digits])
 
 location_of_zero = mixed_digits.index(zero_digit)
 
@@ -68,3 +63,17 @@ print(f'2000th = {b}')
 print(f'3000th = {c}')
 
 print('SUM = ', sum((a, b, c)))
+
+tests = [
+    [1, 2, -3, 3, -2, 0, 4],
+    [2, 1, -3, 3, -2, 0, 4],
+    [1, -3, 2, 3, -2, 0, 4],
+    [1, 2, 3, -2, -3, 0, 4],
+    [1, 2, -2, -3, 0, 3, 4],
+    [1, 2, -3, 0, 3, 4, -2],
+    [1, 2, -3, 0, 3, 4, -2],
+    [1, 2, -3, 4, 0, 3, -2],
+]
+
+for expected, actual in zip(tests, actuals):
+    print(f'{expected == actual}')
