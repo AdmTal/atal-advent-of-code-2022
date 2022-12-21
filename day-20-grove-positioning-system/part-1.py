@@ -36,20 +36,20 @@ for original_digit in original_digit_order:
 
     # If the value is positive, move it forward in the list
     if original_digit.value > 0:
-        if current_location + original_digit.value >= NUM_NUMS:
-            new_index = ((current_location + original_digit.value) % NUM_NUMS) + 1
+        next_location = current_location + original_digit.value
+        if next_location > NUM_NUMS:
+            new_index = next_location % NUM_NUMS + 1
         else:
-            new_index = (current_location + original_digit.value) % NUM_NUMS
+            new_index = next_location % NUM_NUMS
     else:
         # If the value is negative, move it backwards in the list
-        # https://stackoverflow.com/questions/14785443/is-there-an-expression-using-modulo-to-do-backwards-wrap-around-reverse-overfl
-        new_index = ((current_location - 1 + original_digit.value) % NUM_NUMS + NUM_NUMS) % NUM_NUMS
+        new_index = 0
+        # Mod should never be negative ... ?
+
 
     mixed_digits.pop(current_location)
     mixed_digits.insert(new_index, original_digit)
 
-    a = (new_index + 1) % NUM_NUMS
-    b = new_index - 1 if new_index - 1 >= 0 else NUM_NUMS - 1
     actuals.append([i.value for i in mixed_digits])
 
 location_of_zero = mixed_digits.index(zero_digit)
