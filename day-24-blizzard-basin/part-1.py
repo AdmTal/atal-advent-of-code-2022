@@ -3,10 +3,9 @@ from time import sleep
 from collections import defaultdict
 from queue import PriorityQueue
 
-input_items = open('./medium-example.txt').read().split('\n')
 # input_items = open('./example-input.txt').read().split('\n')
+input_items = open('./medium-example.txt').read().split('\n')
 # input_items = open('./input.txt').read().split('\n')
-# blizzard_cycle_length=3171
 
 # The answer is fewest num MIN - not steps
 # So ... penalty for WAITING
@@ -60,17 +59,27 @@ class Blizz(object):
         else:
             drow, dcol = (0, unit)
 
-        self._row = (self._row + drow) % (HEIGHT + 1)
-        self._col = (self._col + dcol) % (WIDTH + 1)
+        self._row = self._row + drow
+        self._col = self._col + dcol
+        if self._row == HEIGHT + 1:
+            self._row = 1
+        if self._col == WIDTH + 1:
+            self._col = 1
+        if self._row == 0:
+            self._row = HEIGHT
+        if self._col == 0:
+            self._col = WIDTH
 
 
 # Parse Input - make the Bliz Objects
 blizzards = []
+blizzards2 = []
 for row in range(1, HEIGHT + 1):
     for col in range(1, WIDTH + 1):
         item = input_items[row][col]
         if item in (BLIZ_UP, BLIZ_DOWN, BLIZ_LEFT, BLIZ_RIGHT):
             blizzards.append(Blizz(item, row, col))
+            blizzards2.append(Blizz(item, row, col))
 
 
 def _generate_blizz_lookup(blizzes):
@@ -89,7 +98,12 @@ def _generate_blizz_lookup(blizzes):
     return bliz_grid_lookup
 
 
-def print_grid(blizzards):
+import re
+
+next_Step_Re = re.compile('(\d+):\((\d+),(\d+)\)')
+
+
+def print_grid(blizzards, next_step):
     grid = [['' for col in range(WIDTH + 2)] for row in range(HEIGHT + 2)]
 
     bliz_lookup = _generate_blizz_lookup(blizzards)
@@ -104,6 +118,20 @@ def print_grid(blizzards):
             else:
                 grid[row][col] = '.'
 
+    _, _, xrow, xcol, _ = next_Step_Re.split(next_step)
+
+    grid[0][1] = ' '
+    grid[HEIGHT + 1][WIDTH] = ' '
+
+    # for row in grid:
+    #     print(''.join(row))
+
+    # sleep(.1)
+    if grid[int(xrow)][int(xcol)] == '#':
+        exit(f'{int(xrow)},{int(xcol)} is not valid move')
+    grid[int(xrow)][int(xcol)] = '@'
+
+    # os.system('clear')
     for row in grid:
         print(''.join(row))
 
@@ -161,8 +189,7 @@ START_COL = 1
 END_ROW = HEIGHT + 1
 END_COL = WIDTH
 
-print(f'Building Graph Nodes: {(blizzard_cycle_length - 1) * HEIGHT * WIDTH}')
-blizzard_cycle_length -= 1
+print(f'Building Graph Nodes: {blizzard_cycle_length * HEIGHT * WIDTH}')
 input_graph = {}
 for blizdex in range(blizzard_cycle_length):
 
@@ -289,19 +316,18 @@ for name in input_graph.keys():
 
 # print_graph(input_graph)
 
-print(f'Start Nodes Count: {len(start_nodes)}')
 print(f'End Nodes Count = {len(end_nodes)}')
 
 shortest_path = float('inf')
 _path = None
-for start_node in start_nodes:
+for start_node in start_nodes[:1]:
     distances, previous = dijkstra_shortest_path(input_graph, start_node)
 
     for end_node in end_nodes:
         curr = distances[end_node]
         if curr < shortest_path:
             shortest_path = curr
-            print(f'New Shortest Path from {start_node} to {end_node} is {distances[end_node]}')
+            # print(f'New Shortest Path from {start_node} to {end_node} is {distances[end_node]}')
             # Build the shortest path by following the previous nodes
             path = []
             current_node = end_node
@@ -312,4 +338,24 @@ for start_node in start_nodes:
             # Reverse the path to get the correct order
             _path = list(reversed(path))
 
-print(f'Final Path: {_path}')
+print(f'\nFinal Path {len(_path)}\n\n{_path}')
+exit()
+# print_grid(blizzards2, name_node(0, START_ROW, START_COL))
+for bliz in blizzards2:
+    bliz.move()
+# print_grid(blizzards2, _path[0])
+
+# print_grid(blizzards2)
+minutes = 1
+while _path:
+    next_step = _path.pop(0)
+    print(f'\nMinute {minutes}')
+    minutes += 1
+    print_grid(blizzards2, next_step)
+
+    for bliz in blizzards2:
+        bliz.move()
+
+    # sleep(.1)
+
+print(f'Final Path ({shortest_path})')
