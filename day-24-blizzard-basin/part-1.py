@@ -3,8 +3,9 @@ from time import sleep
 from collections import defaultdict
 from queue import PriorityQueue
 
+input_items = open('./medium-example.txt').read().split('\n')
 # input_items = open('./example-input.txt').read().split('\n')
-input_items = open('./input.txt').read().split('\n')
+# input_items = open('./input.txt').read().split('\n')
 # blizzard_cycle_length=3171
 
 # The answer is fewest num MIN - not steps
@@ -252,7 +253,7 @@ def dijkstra_shortest_path(graph, start) -> int:
                 previous[child.name] = current
                 Q.put((distance_to_child, child.name))
 
-    return distance
+    return distance, previous
 
 
 start_suffix = f'({START_ROW},{START_COL})'
@@ -292,11 +293,23 @@ print(f'Start Nodes Count: {len(start_nodes)}')
 print(f'End Nodes Count = {len(end_nodes)}')
 
 shortest_path = float('inf')
+_path = None
 for start_node in start_nodes:
-    distances = dijkstra_shortest_path(input_graph, start_node)
+    distances, previous = dijkstra_shortest_path(input_graph, start_node)
 
     for end_node in end_nodes:
         curr = distances[end_node]
         if curr < shortest_path:
             shortest_path = curr
-            print(f'(New Shortest Path from {start_node} to {end_node} is {distances[end_node]}')
+            print(f'New Shortest Path from {start_node} to {end_node} is {distances[end_node]}')
+            # Build the shortest path by following the previous nodes
+            path = []
+            current_node = end_node
+            while current_node is not None:
+                path.append(current_node)
+                current_node = previous[current_node]
+
+            # Reverse the path to get the correct order
+            _path = list(reversed(path))
+
+print(f'Final Path: {_path}')
