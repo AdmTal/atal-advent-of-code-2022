@@ -4,8 +4,8 @@ from collections import defaultdict
 from queue import PriorityQueue
 
 # input_items = open('./example-input.txt').read().split('\n')
-# input_items = open('./medium-example.txt').read().split('\n')
-input_items = open('./input.txt').read().split('\n')
+input_items = open('./medium-example.txt').read().split('\n')
+# input_items = open('./input.txt').read().split('\n')
 
 
 HEIGHT = len(input_items) - 2
@@ -208,14 +208,14 @@ for blizdex in range(blizzard_cycle_length):
             if node_name not in input_graph:
                 continue
 
-            # Add SELF EDGE to represent waiting (links to next BLIZDEX)
-            if node_name in input_graph:
-                current_node = input_graph[node_name]
-                next_node_name = name_node(next_blizdex, row, col)
-                if next_node_name in input_graph:
-                    next_node = input_graph[next_node_name]
-                    current_node.add_edge(next_node, 1)
-                    edges_added += 1
+            current_node = input_graph[node_name]
+
+            # Add SELF EDGE to represent waiting
+            next_node_name = name_node(next_blizdex, row, col)
+            if next_node_name in input_graph and not blizdex_oracle[next_blizdex][row][col]:
+                next_node = input_graph[next_node_name]
+                current_node.add_edge(next_node, 1)
+                edges_added += 1
 
             for drow, dcol in POSSIBLE_DIRECTIONS:
                 next_row = row + drow
@@ -326,7 +326,7 @@ for start_node in start_nodes[:1]:
             # Reverse the path to get the correct order
             _path = list(reversed(path))
 
-shortest_path = len(_path)
+shortest_path = len(_path[1:])
 print(f'\nFinal Path Len {shortest_path}')
 input('Press enter to validate path.')
 print_grid(blizzards2, name_node(0, START_ROW, START_COL))
@@ -347,3 +347,4 @@ while _path:
     sleep(.1)
 
 print(f'Final Path ({shortest_path})')
+print(list(reversed(path[1:])))
