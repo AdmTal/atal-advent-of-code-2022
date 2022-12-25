@@ -4,21 +4,8 @@ from collections import defaultdict
 from queue import PriorityQueue
 
 # input_items = open('./example-input.txt').read().split('\n')
-input_items = open('./medium-example.txt').read().split('\n')
-# input_items = open('./input.txt').read().split('\n')
-
-# The answer is fewest num MIN - not steps
-# So ... penalty for WAITING
-
-# Figure out if the blizzards cycle, is there a MIN where all B return to their starting locations?
-# That is an important number - if it exists.  I could see it maybe not existing, but that is not likely
-
-# In a brute force - you could curtail your paths by never stepping back to a "starting" position.
-# That would mean - you stand in the same place, at the same point in the blizzard cycle (which requires memory)
-# But DFS would never finish if cycles can exist - an a true cycle can only be detected in that way.
-# Memory would be (LOCATION,BLIZZ_INDEX)
-
-# The task here is to convert this problem into a DIrect Graph
+# input_items = open('./medium-example.txt').read().split('\n')
+input_items = open('./input.txt').read().split('\n')
 
 
 HEIGHT = len(input_items) - 2
@@ -103,7 +90,7 @@ import re
 next_Step_Re = re.compile('(\d+):\((\d+),(\d+)\)')
 
 
-def print_grid(blizzards, next_step):
+def print_grid(blizzards, next_step=None):
     grid = [['' for col in range(WIDTH + 2)] for row in range(HEIGHT + 2)]
 
     bliz_lookup = _generate_blizz_lookup(blizzards)
@@ -118,22 +105,22 @@ def print_grid(blizzards, next_step):
             else:
                 grid[row][col] = '.'
 
-    _, _, xrow, xcol, _ = next_Step_Re.split(next_step)
+    if next_step:
+        _, _, xrow, xcol, _ = next_Step_Re.split(next_step)
+        grid[0][1] = '.'
+        grid[HEIGHT + 1][WIDTH] = '.'
+    else:
+        for row in grid:
+            print(''.join(row))
 
-    grid[0][1] = ' '
-    grid[HEIGHT + 1][WIDTH] = ' '
+    if next_step:
+        if grid[int(xrow)][int(xcol)] == '#':
+            exit(f'{int(xrow)},{int(xcol)} is not valid move')
+        grid[int(xrow)][int(xcol)] = "█"
 
-    # for row in grid:
-    #     print(''.join(row))
-
-    # sleep(.1)
-    if grid[int(xrow)][int(xcol)] == '#':
-        exit(f'{int(xrow)},{int(xcol)} is not valid move')
-    grid[int(xrow)][int(xcol)] = '@'
-
-    # os.system('clear')
-    for row in grid:
-        print(''.join(row))
+        os.system('clear')
+        for row in grid:
+            print(''.join(row))
 
 
 # Figure out how many steps it takes the Blizzards to repeat themselves
@@ -148,8 +135,9 @@ while True:
         bliz.move()
     blizzard_cycle_length += 1
     # os.system('clear')
+    # print('Simulating Blizzard to find cycle length...')
     # print_grid(blizzards)
-    # sleep(.1)
+    # # sleep(.09)
     num_back_at_1 = 0
     for bliz in blizzards:
         if bliz.is_back_at_step_1():
@@ -338,24 +326,24 @@ for start_node in start_nodes[:1]:
             # Reverse the path to get the correct order
             _path = list(reversed(path))
 
-print(f'\nFinal Path {len(_path)}\n\n{_path}')
-exit()
-# print_grid(blizzards2, name_node(0, START_ROW, START_COL))
+shortest_path = len(_path)
+print(f'\nFinal Path Len {shortest_path}')
+input('Press enter to validate path.')
+print_grid(blizzards2, name_node(0, START_ROW, START_COL))
 for bliz in blizzards2:
     bliz.move()
-# print_grid(blizzards2, _path[0])
 
-# print_grid(blizzards2)
 minutes = 1
 while _path:
     next_step = _path.pop(0)
-    print(f'\nMinute {minutes}')
-    minutes += 1
+
     print_grid(blizzards2, next_step)
+    print(f'Minute {minutes}')
+    minutes += 1
 
     for bliz in blizzards2:
         bliz.move()
 
-    # sleep(.1)
+    sleep(.1)
 
 print(f'Final Path ({shortest_path})')
